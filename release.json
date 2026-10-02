@@ -1,0 +1,26 @@
+{
+  "hostImports": {
+    "view.vox": [
+      "/core/runtime.js",
+      "/util/view-plugin.js",
+      "/util/vox/decode.js",
+      "/util/vox/scene.js",
+      "/util/voxel-orbit-renderer.js"
+    ]
+  },
+  "packages": [
+    {
+      "entry": "views/view-vox.js",
+      "files": {
+        "src/view.vox/views/view-vox.js": "views/view-vox.js"
+      },
+      "kind": "view",
+      "name": "view.vox",
+      "sha256": {
+        "src/view.vox/views/view-vox.js": "cc82d3e9ab0bdbe3ace0a6a3f9de2ae23351be15aa0a945dad50a0ddbe7403e5"
+      },
+      "tag": "view-vox"
+    }
+  ],
+  "repository": "view.vox"
+}
