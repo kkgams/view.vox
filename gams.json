@@ -1,0 +1,43 @@
+{
+  "plugins": [
+    "https://github.com/kkgams/plugin.fs/releases/download/v0.2.0/plugin.fs.wasm",
+    "https://github.com/kkgams/plugin.layout/releases/download/v0.2.0/plugin.layout.wasm"
+  ],
+  "ui": {
+    "keys": [],
+    "theme": {
+      "url": "https://github.com/kkgams/theme.the98/releases/download/v0.2.6/theme.the98-0.2.6.zip#themes/the98.css"
+    },
+    "services": {
+      "ui-context": {
+        "url": "https://github.com/kkgams/ui-service.context/releases/download/v0.2.0/ui-service.context-0.2.0.zip#ui-plugins/context.js"
+      },
+      "ui-keys": {
+        "url": "https://github.com/kkgams/ui-service.keys/releases/download/v0.2.0/ui-service.keys-0.2.0.zip#ui-plugins/keys.js"
+      },
+      "ui-toast": {
+        "url": "https://github.com/kkgams/ui-service.toast/releases/download/v0.2.0/ui-service.toast-0.2.0.zip#ui-plugins/toast.js"
+      },
+      "ui-popup": {
+        "url": "https://github.com/kkgams/ui-service.popup/releases/download/v0.2.0/ui-service.popup-0.2.0.zip#ui-plugins/popup.js"
+      },
+      "ui-tooltip": {
+        "url": "https://github.com/kkgams/ui-service.tooltip/releases/download/v0.2.0/ui-service.tooltip-0.2.0.zip#ui-plugins/tooltip.js"
+      },
+      "ui-layout": {
+        "url": "https://github.com/kkgams/ui-service.layout/releases/download/v0.2.0/ui-service.layout-0.2.0.zip#ui-plugins/layout.js",
+        "config": {
+          "layout": "<view-vox />"
+        }
+      }
+    },
+    "views": {
+      "view-vox": {
+        "url": "src/view.vox/views/view-vox.js",
+        "label": "view-vox",
+        "internal": false,
+        "defaultSource": "dev-assets/model.vox"
+      }
+    }
+  }
+}
