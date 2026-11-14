@@ -3,6 +3,18 @@ import json
 from pathlib import Path
 import sys
 
+def remote_url(source):
+    assert isinstance(source, dict) and set(source) == {"$file"}, source
+    resource = source["$file"]
+    if isinstance(resource, dict):
+        assert set(resource) == {"url", "entry"}, resource
+        assert isinstance(resource["entry"], str) and resource["entry"], resource
+        resource = resource["url"]
+    assert isinstance(resource, str) and resource.startswith("https://github.com/kkgams/"), resource
+    assert "/releases/download/v" in resource, resource
+    return resource
+
+
 ROOT = Path(__file__).resolve().parents[1]
 config = json.loads((ROOT / "gams.json").read_text())
 entries = {"view-vox": "src/view.vox/views/view-vox.js"}
@@ -14,11 +26,9 @@ for tag, source in entries.items():
     assert views[tag]["url"] == source
     assert (ROOT / source).is_file(), source
 for entry in [config["ui"]["theme"], *config["ui"]["services"].values()]:
-    assert entry["url"].startswith("https://github.com/kkgams/")
-    assert "/releases/download/v" in entry["url"]
+    remote_url(entry["url"])
 for source in config["plugins"]:
-    assert source.startswith("https://github.com/kkgams/")
-    assert "/releases/download/v" in source
+    remote_url(source)
 
 if "--require-inputs" in sys.argv:
     paths = []
