@@ -1,31 +1,23 @@
-# view.vox
+# Voxel View
 
-One separately installable ZIP per View, never npm/OCI. Host contract: GAMS 2.0.3.
-Run npm test (Node 24, Python 3 stdlib). release.json binds package identities, deployment maps and hashes.
-Absolute imports enumerated in release.json are required Host-owned runtime/util/widget APIs; missing APIs, config or schemas are bugs, not optional fallbacks.
-Keep Project Config ids/tags and URLs as deployed. view-markdow spelling is deliberately unchanged.
-Blend 1D retains views/view-animation-blend-spaces.js; independently installed 2D requires views/view-animation-blend-space-2d.js in Project Config. No HTML/class behavior is rewritten.
-Install using scripts/release.py install (verified checksums), retain metadata under notices/project-units/<package>. Refuse all overwrite collisions.
-Dependencies (plugins, sibling Views, UI Services) remain Project configured; static Host imports are documented, not vendored.
-HOST-CONTRACT.json includes required dynamic widget paths and known legacy schema limits.
-GUI validation pending: VOX parsing, scene instances and interactive orbit rendering. No blanket E2E claim.
+MagicaVoxel model viewer for [GAMS](https://github.com/kkgams/gams).
 
-## Local development and docs
+| View | Source / release file | Screenshot | License / author |
+| --- | --- | --- | --- |
+| `view-vox` | `src/view.vox/views/view-vox.js` / `view.vox.zip` | Not available | [Apache-2.0](LICENSE), [GAMS contributors](https://github.com/kkgams/view.vox) |
 
-Use Node.js 24, Python 3, Make, curl and unzip. `make build` checks canonical
-local JavaScript and Project configuration; `make test` runs the existing tests.
-`make open` opens this repository's `gams.json` in downloaded `tools/gams.app`
-(macOS Apple Silicon), with explicit `GAMS_APP_CWD` and no sibling checkout.
-Supply the required ignored `dev-assets/` inputs first; launch fails clearly when missing.
+## Development
 
-`make serve-docs` serves `docs/` using pinned wiki v1.4.0 (`DOCS_PORT` overrides 8080).
-`make validate-docs` validates it; `make docs` builds `build/site/`.
-Every push to `release` publishes docs through GitHub Pages independently of
-version tags. See [development details](docs/index.md) for setup and limitations.
+Requires Make, Node.js 24, Python 3, curl, zip, unzip and tar. Canonical JavaScript loads directly; no compilation or package installation is needed.
 
-## Publication
+| Command | Purpose |
+| --- | --- |
+| `make check` | Check JavaScript syntax and local Project configuration |
+| `make package` | Build incremental ZIPs and `SHA256SUMS` under `build.nosync/` |
+| `make open` | Open local `gams.json` in the released Host (macOS Apple Silicon) |
+| `make serve-docs` | Preview pinned wiki; independent `DOCS_PORT=8080` |
+| `make validate-docs` | Validate wiki |
+| `make docs` | Build `build.nosync/site/` |
+| `make clean` | Remove generated `build.nosync/`, marked Host downloads and configured completed Unit caches; refuse tracked files, symlinks and unidentified tools/caches |
 
-Pushing a matching version tag authorizes the GitHub Release; no approval digest
-variables or special release branch are required. Tests, source/legal evidence,
-exact LICENSE/NOTICE payloads, deterministic archives, SHA256SUMS and no-overwrite
-checks remain mandatory. See `PUBLISHING.md`; this migration refreshes no evidence.
+Supply the MagicaVoxel model described in [the wiki](docs/index.md) before opening. Supplied inputs are not packaged. Existing Host downloads are never updated implicitly; notices remain beside the app. First use requires network. No sibling checkout is needed.

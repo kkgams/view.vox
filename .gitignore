@@ -8,3 +8,5 @@ __pycache__/
 /tools/
 /gams_modules/
 /dev-assets/
+
+/build.nosync/

@@ -1,9 +1,6 @@
 view.vox
-GAMS-authored contributions: Apache-2.0; root LICENSE. This does not relicense third-party code or assets.
+GAMS-authored contributions: Apache-2.0; see LICENSE.
+This does not relicense third-party code or user-supplied assets.
 
-View source/header/import scan found no identifiable vendored third-party implementation in selected entry files. This is a bounded scan, not an authorship certificate. BulletML command/schema ideas alone do not prove a copied interpreter; no external BulletML package is bundled in the current source closure.
-Absolute /util/, /widgets/, /core/ imports are Host-provided runtime dependencies, not distribution of those helper bytes. In particular markdown-it, Ajv, aseprite.js, voxel helpers and icon font names do not bundle their libraries/font binaries. Host has a separate approved notice boundary; this audit does not recertify Host provenance.
-
-Full terms: LICENSES/. Review: THIRD-PARTY-REVIEW.md. This notice is source-bound, not a certification of unverified upstream provenance or current linked contents.
-
-NOTICE-EVIDENCE.json SHA-256: 13bc04844866c899684333559ce7bd0e84f338cd629a8d8f1c76f765fd4f3505
+Host-owned /core/, /util/ and /widgets/ imports are external runtime dependencies;
+no Host libraries, artwork, fonts or supplied development assets are bundled.
