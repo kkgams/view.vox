@@ -23,7 +23,7 @@ Requires Make, Node.js 24, Python 3, curl, zip, unzip and tar. Canonical JavaScr
 | `make serve-docs` | Preview pinned wiki; independent `DOCS_PORT=8080` |
 | `make validate-docs` | Validate wiki |
 | `make docs` | Build `build.nosync/site/` |
-| `make clean` | Remove generated `build.nosync/`, marked Host downloads and configured completed Unit caches; refuse tracked files, symlinks and unidentified tools/caches |
+| `make clean` | Remove all of `build.nosync/`, `tools/` and `gams_modules/`, without ownership markers; refuse tracked files or symlinks in deletion paths before deleting anything. |
 
 Supply the MagicaVoxel model described in the inputs below before opening. Supplied inputs are not packaged. Existing Host downloads are never updated implicitly; notices remain beside the app. First use requires network. No sibling checkout is needed.
 
