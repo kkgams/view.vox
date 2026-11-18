@@ -4,6 +4,8 @@ import { decode as decodeVox } from "/util/vox/decode.js"
 import { collectVoxInstances, voxelRenderDataFromVox } from "/util/vox/scene.js"
 import { VoxelOrbitRenderer } from "/util/voxel-orbit-renderer.js"
 
+const WEBGL2_UNAVAILABLE = "WebGL2 is unavailable. VOX rendering requires WebGL2."
+
 function assert(condition, message) {
     if (!condition) throw new Error(message)
 }
@@ -18,6 +20,8 @@ export class ViewVox extends HTMLElement {
         this.path = ""
         this.canvas = null
         this.renderer = null
+        this.webgl2Unavailable = false
+        this.loadRevision = 0
         this.statusElement = null
         this.pathElement = null
         this.headerControlsElement = null
@@ -44,7 +48,6 @@ export class ViewVox extends HTMLElement {
 
     connectedCallback() {
         if (this.dataset.ready) return
-        this.dataset.ready = "1"
         this.style.display = "contents"
 
         this.path = String(this.popupProps?.path || this.getAttribute("data-source") || "").trim()
@@ -54,7 +57,7 @@ export class ViewVox extends HTMLElement {
       <canvas data-element="canvas"></canvas>
       <footer data-element="footer">
         <output data-element="path"></output>
-        <output data-element="status">Loading...</output>
+        <output data-element="status"></output>
       </footer>
     `
 
@@ -77,22 +80,25 @@ export class ViewVox extends HTMLElement {
         this.canvas.style.cursor = "grab"
         if (!this.hasAttribute("tabindex")) this.setAttribute("tabindex", "0")
 
-        this.renderer = new VoxelOrbitRenderer(this.canvas)
-        this.resizeObserver.observe(this.canvas)
         this.mountHeaderControls()
-        registerViewPlugin(this, this.createViewPluginMethods())
+        registerViewPlugin(this)
+        this.dataset.ready = "1"
         void this.load()
     }
 
     disconnectedCallback() {
+        delete this.dataset.ready
+        this.loadRevision++
         if (this.resizeFrame) {
             cancelAnimationFrame(this.resizeFrame)
             this.resizeFrame = 0
         }
+        this.pendingCanvasSize = null
         this.resizeObserver.disconnect()
         this.unmountHeaderControls()
         if (this.renderer) this.renderer.dispose()
         this.renderer = null
+        this.webgl2Unavailable = false
         void unregisterViewPlugin(this)
     }
 
@@ -102,15 +108,6 @@ export class ViewVox extends HTMLElement {
         this.path = String(newValue || "").trim()
         if (this.pathElement instanceof HTMLOutputElement) this.pathElement.textContent = this.path
         if (this.dataset.ready) void this.load()
-    }
-
-    createViewPluginMethods() {
-        return {
-            reload: async () => {
-                await this.reload()
-                return { ok: true }
-            },
-        }
     }
 
     mountHeaderControls() {
@@ -142,23 +139,28 @@ export class ViewVox extends HTMLElement {
     }
 
     async reload() {
-        await this.load()
-        await runtime.call("ui.toast.success", { message: `Reloaded ${this.path}` })
+        const path = this.path
+        const result = await this.load()
+        if (result.ok) await runtime.call("ui.toast.success", { message: `Reloaded ${path}` })
+        return result
     }
 
     zoomIn() {
-        assert(this.renderer, "view-vox renderer is not initialized")
-        this.renderer.zoom(0.8)
+        return this.applyViewAction(renderer => renderer.zoom(0.8))
     }
 
     zoomOut() {
-        assert(this.renderer, "view-vox renderer is not initialized")
-        this.renderer.zoom(1.25)
+        return this.applyViewAction(renderer => renderer.zoom(1.25))
     }
 
     zoomFit() {
+        return this.applyViewAction(renderer => renderer.fit())
+    }
+
+    applyViewAction(action) {
+        if (this.webgl2Unavailable) return { err: WEBGL2_UNAVAILABLE }
         assert(this.renderer, "view-vox renderer is not initialized")
-        this.renderer.fit()
+        action(this.renderer)
     }
 
     setStatus(text, tone = null) {
@@ -168,22 +170,49 @@ export class ViewVox extends HTMLElement {
         if (tone) this.statusElement.classList.add(tone)
     }
 
+    initializeRenderer() {
+        assert(this.canvas instanceof HTMLCanvasElement, "view-vox missing canvas")
+        // Probe the actual canvas with the renderer's options. Only null is expected.
+        this.webgl2Unavailable = this.canvas.getContext("webgl2", { antialias: true, alpha: true }) === null
+        if (this.headerControlsElement) {
+            for (const button of this.headerControlsElement.querySelectorAll('[data-element="view-actions"] > button')) {
+                button.disabled = this.webgl2Unavailable
+            }
+        }
+        if (this.webgl2Unavailable) return false
+
+        this.renderer = new VoxelOrbitRenderer(this.canvas)
+        this.resizeObserver.observe(this.canvas)
+        return true
+    }
+
     async load() {
-        assert(this.path, "view-vox requires data-source")
-        assert(this.renderer, "view-vox renderer is not initialized")
+        const revision = ++this.loadRevision
+        const path = this.path
+        assert(path, "view-vox requires data-source")
+        if (!this.renderer && !this.initializeRenderer()) {
+            this.setStatus(WEBGL2_UNAVAILABLE, "danger")
+            return { err: WEBGL2_UNAVAILABLE }
+        }
         this.setStatus("Loading...", "info")
 
+        let vox, instances, renderData
         try {
-            const bytes = new Uint8Array(unwrap(await runtime.invoke("fs/fs::read-file", this.path), this.path))
-            const vox = decodeVox(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-            const instances = collectVoxInstances(vox)
-            const renderData = voxelRenderDataFromVox(vox, instances)
-            this.renderer.setInstances(renderData)
-            this.setStatus(this.createStatusText(vox, instances, renderData.instances.length / 4), "success")
+            const bytes = new Uint8Array(unwrap(await runtime.invoke("fs/fs::read-file", path), path))
+            if (revision !== this.loadRevision) return { err: "VOX load was superseded" }
+            vox = decodeVox(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+            instances = collectVoxInstances(vox)
+            renderData = voxelRenderDataFromVox(vox, instances)
         } catch (error) {
-            this.setStatus(`Error: ${error?.message || error}`, "danger")
+            if (revision !== this.loadRevision) return { err: "VOX load was superseded" }
+            const message = `Error: ${error?.message || error}`
+            this.setStatus(message, "danger")
             console.error("view-vox load failed:", error)
+            return { err: message }
         }
+        this.renderer.setInstances(renderData)
+        this.setStatus(this.createStatusText(vox, instances, renderData.instances.length / 4), "success")
+        return { ok: true }
     }
 
     createStatusText(vox, instances, voxelCount) {
